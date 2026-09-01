@@ -3,6 +3,10 @@
   hosts: workstations
   become: true
   gather_facts: true
+  vars:
+    path:
+      - "{{ user.home }}/.local/bin"
+      - "{{ user.home }}/.cargo/bin"
   pre_tasks:
     # to allow for ansible pipelining functionality
     # https://docs.ansible.com/ansible/2.4/intro_configuration.html#pipelining
@@ -33,3 +37,7 @@
   roles:
     - role: b08x.devworkstation.base
     - role: b08x.devworkstation.desktop
+    - role: b08x.llmops.antigravity
+      tags: ["antigravity"]
+      vars:
+        antigravity_state: present
