@@ -7,6 +7,8 @@
     path:
       - "{{ user.home }}/.local/bin"
       - "{{ user.home }}/.cargo/bin"
+  environment:
+    PATH: "{{ path|join(':') }}:{{ ansible_env.PATH }}:/sbin:/bin"
   pre_tasks:
     # to allow for ansible pipelining functionality
     # https://docs.ansible.com/ansible/2.4/intro_configuration.html#pipelining
@@ -41,3 +43,5 @@
       tags: ["antigravity"]
       vars:
         antigravity_state: present
+    - role: b08x.devworkstation.virt
+      tags: ["virt"]
