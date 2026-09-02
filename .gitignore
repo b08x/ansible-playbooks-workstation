@@ -1,3 +1,4 @@
+.vagrant/machines/
 .logs/*
 *.retry
 *.vault
@@ -181,3 +182,8 @@ cython_debug/
 
 site.json
 ansible-playbooks-workstation.code-workspace
+
+.agents/skills/trackboi
+
+.trackboi/
+.vagrant/

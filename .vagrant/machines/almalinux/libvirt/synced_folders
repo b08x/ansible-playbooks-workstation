@@ -1,1 +1,0 @@
-{"rsync":{"/vagrant":{"type":"rsync","guestpath":"/vagrant","hostpath":"/home/b08x/WorkspaceV3/Syncopated/ansible","disabled":false,"rsync__exclude":[".git/","*.swp",".venv/",".vagrant/"],"__vagrantfile":true,"exclude":[".git/","*.swp",".venv/",".vagrant/"],"owner":"vagrant","group":"vagrant"}}}
