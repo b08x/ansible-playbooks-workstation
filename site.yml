@@ -5,8 +5,8 @@
   gather_facts: true
   vars:
     path:
-      - "{{ user.home }}/.local/bin"
-      - "{{ user.home }}/.cargo/bin"
+      - "{{ ansible_user_dir }}/.local/bin"
+      - "{{ ansible_user_dir }}/.cargo/bin"
   environment:
     PATH: "{{ path|join(':') }}:{{ ansible_env.PATH }}:/sbin:/bin"
   pre_tasks:
@@ -17,11 +17,11 @@
       ansible.builtin.lineinfile:
         dest: /etc/sudoers
         regexp: "^Defaults    requiretty"
-        line: "Defaults:{{ user.name }}    !requiretty"
+        line: "Defaults:{{ ansible_user_id }}    !requiretty"
         backrefs: false
         backup: false
         validate: "visudo -cf %s"
-      when: user.name != 'root'
+      when: ansible_user_id != 'root'
       tags: ["sudoers"]
 
     - name: Display ansible_distribution
@@ -43,5 +43,7 @@
       tags: ["antigravity"]
       vars:
         antigravity_state: present
-    - role: b08x.devworkstation.virt
-      tags: ["virt"]
+    - role: b08x.devworkstation.libvirt
+      tags: ["libvirt", "virt"]
+    - role: b08x.devworkstation.containerd
+      tags: ["containerd", "virt"]

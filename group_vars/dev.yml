@@ -1,4 +1,7 @@
 ---
+
+use_containers: true
+use_kvm: true
 user:
   name: b08x
   group: b08x

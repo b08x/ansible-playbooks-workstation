@@ -22,9 +22,9 @@ Vagrant.configure('2') do |config|
                      libvirt__network_name: 'default'
 
     almalinux.vm.provider :libvirt do |libvirt|
-      libvirt.memory = 4096
+      libvirt.memory = 8192
       libvirt.uri = "qemu:///system"
-      libvirt.cpus = 4
+      libvirt.cpus = 8
       libvirt.nested = true
       libvirt.disk_bus = 'virtio'
       libvirt.cpu_mode = 'host-passthrough'
@@ -45,11 +45,13 @@ Vagrant.configure('2') do |config|
     # Bootstrap system for testing
     almalinux.vm.provision 'shell', inline: <<-SHELL
       # Update system
-      dnf update -y
-
+	  dnf config-manager --set-enabled crb
       # Install required packages
       dnf install -y epel-release
-      dnf install -y python3 python3-pip ansible-core git
+      dnf install -y python3 python3-pip ansible-core git curl make
+      dnf install -y ansible-collection-ansible-posix ansible-collection-ansible-utils
+
+      dnf clean all && dnf update -y
 
       # Setup SSH key
       mkdir -p /home/vagrant/.ssh
@@ -65,11 +67,13 @@ Vagrant.configure('2') do |config|
     # Run Ansible playbook for testing
     almalinux.vm.provision 'ansible' do |ansible|
       ansible.playbook = 'site.yml'
-      ansible.inventory_path = 'inventory/hosts.ini'
-      ansible.limit = 'almalinux-test.syncopated.dev'
+      ansible.groups = {
+        'workstations' => ['almalinux']
+      }
       ansible.extra_vars = {
         ansible_python_interpreter: '/usr/bin/python3',
         ansible_user: 'vagrant',
+        user: { name: 'vagrant', group: 'vagrant', home: '/home/vagrant', shell: '/bin/bash' },
         # Override variables for testing
         use_containers: 'false',
         use_kvm: 'false'
@@ -125,11 +129,13 @@ Vagrant.configure('2') do |config|
     # Run Ansible playbook
     arch.vm.provision 'ansible' do |ansible|
       ansible.playbook = 'site.yml'
-      ansible.inventory_path = 'inventory/hosts.ini'
-      ansible.limit = 'arch-test.syncopated.dev'
+      ansible.groups = {
+        'workstations' => ['arch']
+      }
       ansible.extra_vars = {
         ansible_python_interpreter: '/usr/bin/python3',
         ansible_user: 'vagrant',
+        user: { name: 'vagrant', group: 'vagrant', home: '/home/vagrant', shell: '/bin/bash' },
         use_docker: 'false',
         use_libvirt: 'false',
         window_manager: 'i3',
