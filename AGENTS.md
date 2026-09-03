@@ -34,8 +34,9 @@ pre-commit run --all-files
 
 ## Configuration
 
-- Inventory: `inventory/hosts.yml`
-- Group vars: `inventory/group_vars/all.yml`
+- Inventory: `inventory/hosts.ini` (default) or `inventory/hosts.yml`
+- Group vars: `group_vars/dev.yml` (and `group_vars/all.yml`)
+- Host vars: `host_vars/{{ inventory_hostname }}.yml` (e.g. `host_vars/tinybot.yml`)
 - User vars define: `user.name`, `user.home`, `user.shell`
 - ansible.cfg enables: fact caching (jsonfile), profile_tasks callback, pipelining
 - Logs go to `.logs/` and `/tmp/ansible.log`
@@ -62,6 +63,14 @@ Pre-commit hooks (both collections):
 - Distribution-specific tasks in `tasks/distro/{{ ansible_distribution }}.yml`
 - Tags: use `tags: ['always']` for critical tasks, domain tags for filtering
 - Variable precedence: role defaults < group_vars < host_vars < extra vars
+
+### Variable Naming & Scoping
+- **Tier 1 (Host & Domain Scope)**: Semantic, unprefixed names (`user.*`, `intel_oneapi_install`, `enable_third_party_repos`, `use_containers`, `use_kvm`) represent machine hardware, primary user identity (SSOT), or system-wide capabilities in `group_vars/` or `host_vars/`. Do NOT force artificial role prefixes onto them, as doing so distorts their semantic meaning and forces redundant multi-role copies. `var-naming[no-role-prefix]` is deliberately skipped in `.ansible-lint` for this reason.
+- **Tier 2 (Role Scope)**: Variables defined in role `defaults/main.yml`, `vars/main.yml`, and `set_fact` must be role-prefixed (`<role>_*`) to maintain clean namespaces and avoid cross-role leakage.
+- **Task Registrations**: Variables created via `register:` must be role-prefixed (`<role>_*`) because registered variables have global host scope in Ansible and will collide across roles if left generic.
+
+### Firewall & Port Management
+- Port and firewall rules are **co-located** within the specific role or application task that requires them (e.g. using `ansible.posix.firewalld`), rather than centralized into a standalone firewall role. This ensures services remain self-contained, modular, and manage their own ingress needs directly.
 
 <trackboi>
 ## trackboi Skill
