@@ -4,3 +4,6 @@
 [submodule "collections/ansible_collections/b08x/devworkstation"]
 	path = collections/ansible_collections/b08x/devworkstation
 	url = https://github.com/b08x/devworkstation.git
+[submodule "collections/ansible_collections/b08x/rhel_builder"]
+	path = collections/ansible_collections/b08x/rhel_builder
+	url = https://github.com/b08x/rhel_builder.git

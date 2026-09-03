@@ -1,6 +1,11 @@
+---
 exclude_paths:
   - collections/ansible_collections/ansible/
   - collections/ansible_collections/cisco/
   - collections/ansible_collections/community/
   - collections/ansible_collections/network/
   - .ansible/
+
+# Completely ignore these rules everywhere
+skip_list:
+  - var-naming[no-role-prefix]
