@@ -8,8 +8,8 @@ are followed.
 ## Project Structure
 
 Two Ansible Collections under `collections/ansible_collections/b08x/`:
-- **devworkstation** — base system, desktop, virt, networking, tuning, selinux, run
-- **llmops** — crush, opencode, run, antigravity, vibe, ollama, hermes, claude, whisper
+- **devworkstation** — base system, desktop, virt, networking, tuning, selinux, run, coding_agents (antigravity, claude, crush, opencode, vibe)
+- **llmops** — run, ollama, hermes, whisper
 
 Main playbook: `site.yml` targets `workstations` group (tinybot, gir, soundbot).
 

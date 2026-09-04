@@ -64,12 +64,7 @@
         tasks_from: cargo.yml
       tags: ["cargo", "rust"]
 
-    - name: Include coding_agents role (installations)
+    - name: Include coding_agents role (installations and configuration)
       ansible.builtin.include_role:
         name: b08x.devworkstation.coding_agents
       tags: ["coding_agents", "install"]
-
-    - name: Include antigravity role (skills and context)
-      ansible.builtin.include_role:
-        name: b08x.llmops.antigravity
-      tags: ["antigravity", "llmops"]
