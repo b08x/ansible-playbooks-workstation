@@ -1,0 +1,11 @@
+---
+- name: Deploy Langfuse (Podman) on tinybot
+  hosts: tinybot
+  become: false
+  gather_facts: true
+  vars:
+    langfuse_container_runtime: podman
+    langfuse_deploy_dir: "{{ user.home }}/LLMOS/langfuse"
+  roles:
+    - role: b08x.llmops.langfuse
+      tags: ["langfuse", "llmops"]
