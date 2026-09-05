@@ -6,6 +6,8 @@
   vars:
     langfuse_container_runtime: podman
     langfuse_deploy_dir: "{{ user.home }}/LLMOS/langfuse"
+    langfuse_nextauth_url: "http://tinybot:3000"
+    langfuse_bind_localhost: false
   roles:
     - role: b08x.llmops.langfuse
       tags: ["langfuse", "llmops"]

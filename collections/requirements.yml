@@ -15,6 +15,8 @@ collections:
   - name: https://github.com/redhat-cop/network.backup
     type: git
 
+  - name: containers.podman
+    version: 1.20.2
   # TO-DO: User's own collections can also be specified as mention below.
   # - name: my_organization.my_collection
   #   version: 1.2.3
