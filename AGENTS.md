@@ -7,11 +7,24 @@ are followed.
 
 ## Project Structure
 
-Two Ansible Collections under `collections/ansible_collections/b08x/`:
-- **devworkstation** — base system, desktop, virt, networking, tuning, selinux, run, coding_agents (antigravity, claude, crush, opencode, vibe)
-- **llmops** — run, ollama, hermes, whisper
+Four Ansible Collections under `collections/ansible_collections/b08x/`, each a git submodule:
+- **devworkstation** — base, desktop, libvirt, networking, containerd, tuning, selinux, run, coding_agents (antigravity, claude, crush, opencode, vibe, skills)
+- **llmops** — run, ollama, hermes, dify, langfuse, tts
+- **rhel_builder** — image_builder, run
+- **context** — run, plus plugins (action, cache, filter, inventory, lookup, modules, test)
+
+Submodules must be initialized before a first run:
+
+```bash
+git submodule update --init --recursive
+```
+
+`.gitignore` ignores `collections/ansible_collections/b08x/*` and re-includes each
+collection explicitly. Adding a fifth collection requires a matching `!` negation
+line there as well as a `.gitmodules` entry — otherwise it is silently untracked.
 
 Main playbook: `site.yml` targets `workstations` group (tinybot, gir, soundbot).
+Standalone deployment playbooks live at the repo root (e.g. `langfuse-podman-tinybot.yml`).
 
 ## Commands
 
@@ -72,8 +85,14 @@ Pre-commit hooks (both collections):
 ### Firewall & Port Management
 - Port and firewall rules are **co-located** within the specific role or application task that requires them (e.g. using `ansible.posix.firewalld`), rather than centralized into a standalone firewall role. This ensures services remain self-contained, modular, and manage their own ingress needs directly.
 
+## Agent Skills
+
+Repo-local skills live in `.agents/skills/<name>/SKILL.md` and are loaded on demand:
+- **trackboi** — project/board/card tracking via MCP (see block below)
+- **langfuse** — Langfuse tracing, datasets, evaluation; pairs with the `b08x.llmops.langfuse` role
+
 <trackboi>
-## trackboi Skill
+### trackboi Skill
 
 When trackboi MCP tools are available, agents can load `.agents/skills/trackboi/SKILL.md` for details, then call `orient_agent` to catch up before updating cards, tracks, boards, or handoff notes. If `.trackboi`, `.etc/.trackboi`, or `.etc/trackboi` files are present but MCP tools are not available, agents may read those files to catch up on local context. Do not manually create, update, or delete trackboi records in the filesystem; use MCP tools for mutations.
 </trackboi>
