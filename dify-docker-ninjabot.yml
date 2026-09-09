@@ -1,0 +1,12 @@
+---
+- name: Deploy Dify (Docker) on ninjabot
+  hosts: ninjabot
+  become: false
+  gather_facts: true
+  vars:
+    dify_container_runtime: docker
+    dify_deploy_dir: "/mnt/local_storage/LLMOS/dify"
+    dify_bind_localhost: false
+  roles:
+    - role: b08x.llmops.dify
+      tags: ["dify", "llmops"]
