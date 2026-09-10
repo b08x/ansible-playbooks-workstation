@@ -4,8 +4,8 @@
 ENV['VAGRANT_DEFAULT_PROVIDER'] = 'libvirt'
 
 # Configuration variables
-ALMALINUX_HOSTNAME = 'almalinux-test.syncopated.dev'.freeze
-ARCH_HOSTNAME = 'arch-test.syncopated.dev'.freeze
+ALMALINUX_HOSTNAME = 'almalinux-test.syncopated.dev'
+ARCH_HOSTNAME = 'arch-test.syncopated.dev'
 
 Vagrant.configure('2') do |config|
   # Global SSH configuration
@@ -18,18 +18,19 @@ Vagrant.configure('2') do |config|
     almalinux.vm.hostname = ALMALINUX_HOSTNAME
 
     almalinux.vm.network :private_network,
-                     ip: '192.168.122.10',
-                     libvirt__network_name: 'default'
+                         ip: '192.168.122.10',
+                         libvirt__network_name: 'default'
 
     almalinux.vm.provider :libvirt do |libvirt|
       libvirt.memory = 8192
-      libvirt.uri = "qemu:///system"
+      libvirt.uri = 'qemu:///system'
       libvirt.cpus = 8
       libvirt.nested = true
       libvirt.disk_bus = 'virtio'
       libvirt.cpu_mode = 'host-passthrough'
       libvirt.nic_model_type = 'virtio'
       libvirt.disk_driver cache: 'writeback'
+      libvirt.machine_virtual_size = 50
     end
 
     # Sync the entire project for testing
@@ -45,13 +46,13 @@ Vagrant.configure('2') do |config|
     # Bootstrap system for testing
     almalinux.vm.provision 'shell', inline: <<-SHELL
       # Update system
-	  dnf config-manager --set-enabled crb
+	    dnf config-manager --set-enabled crb
       # Install required packages
-      dnf install -y epel-release
-      dnf install -y python3 python3-pip ansible-core git curl make
-      dnf install -y ansible-collection-ansible-posix ansible-collection-ansible-utils
+      dnf install -y --setopt=timeout=5 --setopt=retries=2 epel-release
+      dnf install -y --setopt=timeout=5 --setopt=retries=2 python3 python3-pip ansible-core git curl make
+      dnf install -y --setopt=timeout=5 --setopt=retries=2 ansible-collection-ansible-posix ansible-collection-ansible-utils
 
-      dnf clean all && dnf update -y
+      dnf clean all && dnf update -y --setopt=timeout=5 --setopt=retries=2
 
       # Setup SSH key
       mkdir -p /home/vagrant/.ssh
@@ -102,6 +103,7 @@ Vagrant.configure('2') do |config|
       libvirt.cpu_mode = 'host-passthrough'
       libvirt.nic_model_type = 'virtio'
       libvirt.disk_driver cache: 'writeback'
+      libvirt.machine_virtual_size = 50
     end
 
     arch.vm.synced_folder '.', '/vagrant',
