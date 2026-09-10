@@ -8,7 +8,7 @@ user:
   gid: 1000
   home: /home/b08x
   shell: /usr/bin/zsh
-  secondary_groups: "input,video,audio,realtime"
+  secondary_groups: "input,video,audio,render"
   realname: Robert Pannick
   sudoers: true
   email: rwpannick@gmail.com
