@@ -40,6 +40,8 @@
       vars:
         base_install_cargo: false
       tags: ["base", "system"]
+    - role: b08x.devworkstation.tuning
+      tags: ["tuning", "system"]
     - role: b08x.devworkstation.desktop
       tags: ["desktop", "system"]
     - role: b08x.devworkstation.libvirt
