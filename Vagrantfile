@@ -7,6 +7,9 @@ ENV['VAGRANT_DEFAULT_PROVIDER'] = 'libvirt'
 ALMALINUX_HOSTNAME = 'almalinux-test.syncopated.dev'
 ARCH_HOSTNAME = 'arch-test.syncopated.dev'
 
+DEV_USER = ENV['USER']
+
+# rubocop:disable Metrics/BlockLength
 Vagrant.configure('2') do |config|
   # Global SSH configuration
   config.ssh.insert_key = false
@@ -49,7 +52,7 @@ Vagrant.configure('2') do |config|
 	    dnf config-manager --set-enabled crb
       # Install required packages
       dnf install -y --setopt=timeout=5 --setopt=retries=2 epel-release
-      dnf install -y --setopt=timeout=5 --setopt=retries=2 python3 python3-pip ansible-core git curl make
+      dnf install -y --setopt=timeout=5 --setopt=retries=2 python3 python3-pip ansible-core git curl make zsh
       dnf install -y --setopt=timeout=5 --setopt=retries=2 ansible-collection-ansible-posix ansible-collection-ansible-utils
 
       dnf clean all && dnf update -y --setopt=timeout=5 --setopt=retries=2
@@ -61,8 +64,13 @@ Vagrant.configure('2') do |config|
       chown vagrant:vagrant /home/vagrant/.ssh/authorized_keys
 
       # Create test user that matches inventory
-      useradd -m -s /bin/bash testuser || true
-      echo "testuser ALL=(ALL) NOPASSWD:ALL" > /etc/sudoers.d/testuser
+      useradd -m -s /usr/bin/zsh b08x || true
+      usermod -aG wheel b08x
+      mkdir -p /home/b08x/.ssh
+      cat /tmp/id_ed25519.pub >> /home/b08x/.ssh/authorized_keys
+      chmod 600 /home/b08x/.ssh/authorized_keys
+      chown b08x:b08x /home/b08x/.ssh/authorized_keys
+      echo "b08x ALL=(ALL) NOPASSWD:ALL" > /etc/sudoers.d/99-user
     SHELL
 
     # Run Ansible playbook for testing
@@ -73,14 +81,15 @@ Vagrant.configure('2') do |config|
       }
       ansible.extra_vars = {
         ansible_python_interpreter: '/usr/bin/python3',
-        ansible_user: 'vagrant',
-        user: { name: 'vagrant', group: 'vagrant', home: '/home/vagrant', shell: '/bin/bash' },
+        ansible_user: 'b08x',
+        user: { name: 'b08x', group: 'b08x', home: '/home/b08x', shell: '/usr/bin/zsh' },
         # Override variables for testing
         use_containers: 'false',
         use_kvm: 'false'
       }
-      # ansible.tags = ENV['ANSIBLE_TAGS'] || 'base,ssh,shell'
-      ansible.verbose = ENV['ANSIBLE_VERBOSE'] || false
+      # ansible.tags = ENV['ANSIBLE_TAGS'] || 'fzf'
+      ansible.verbose = ENV['ANSIBLE_VERBOSE'] || true
+      ansible.skip_tags = 'libvirt,containerd'
       ansible.raw_arguments = ['--check'] if ENV['ANSIBLE_CHECK']
     end
   end
@@ -149,6 +158,8 @@ Vagrant.configure('2') do |config|
     end
   end
 end
+
+# rubocop:enable Metrics/BlockLength
 
 # Usage Examples:
 #
