@@ -78,7 +78,7 @@
 **/*.a
 **/*.7z
 **/.trackboi
-
+logs/
 .logs/*
 *.retry
 *.vault
@@ -90,6 +90,8 @@ collections/ansible_collections/*
 collections/ansible_collections/b08x/*
 !collections/ansible_collections/b08x/devworkstation
 !collections/ansible_collections/b08x/llmops
+!collections/ansible_collections/b08x/rhel_builder
+!collections/ansible_collections/b08x/context
 # https://raw.githubusercontent.com/github/gitignore/main/Python.gitignore
 # Byte-compiled / optimized / DLL files
 __pycache__/
@@ -259,5 +261,21 @@ cython_debug/
 .ansible/
 
 .opencode/
+.trackboi/
+.vagrant/
+.ruby-lsp/
+.codemap/
 
+argspec_validation_plays.meta.yml
+argspec_validation_plays.yml
+ansible-playbooks-workstation.code-workspace
+ansible.code-workspace
 site.json
+Gemfile.lock
+Gemfile
+.pre-commit-config.yaml
+devfile.yaml
+.mcp.json
+.graphifyignore
+.gitmodules
+.env

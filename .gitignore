@@ -184,10 +184,23 @@ cython_debug/
 
 .opencode/
 
-site.json
-ansible-playbooks-workstation.code-workspace
+*.code-workspace
 
-.agents/skills/trackboi
+.agents/skills/*
 
 .trackboi/
 .vagrant/
+
+argspec_validation_plays.meta.yml
+argspec_validation_plays.yml
+ansible-playbooks-workstation.code-workspace
+ansible.code-workspace
+site.json
+Gemfile.lock
+Gemfile
+.pre-commit-config.yaml
+devfile.yaml
+.mcp.json
+.graphifyignore
+.gitmodules
+.env
