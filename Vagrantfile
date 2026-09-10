@@ -89,7 +89,7 @@ Vagrant.configure('2') do |config|
         use_containers: 'false',
         use_kvm: 'false'
       }
-      ansible.tags = ENV['ANSIBLE_TAGS'] || 'cargo'
+      # ansible.tags = ENV['ANSIBLE_TAGS'] || 'cargo'
       ansible.verbose = ENV['ANSIBLE_VERBOSE'] || false
       ansible.skip_tags = 'libvirt,containerd'
       ansible.raw_arguments = ['--check'] if ENV['ANSIBLE_CHECK']
