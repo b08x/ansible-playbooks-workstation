@@ -34,6 +34,8 @@ Vagrant.configure('2') do |config|
       libvirt.nic_model_type = 'virtio'
       libvirt.disk_driver cache: 'writeback'
       libvirt.machine_virtual_size = 50
+      libvirt.graphics_type = 'spice'
+      libvirt.video_type = 'qxl'
     end
 
     # Sync the entire project for testing
@@ -88,75 +90,75 @@ Vagrant.configure('2') do |config|
         use_kvm: 'false'
       }
       # ansible.tags = ENV['ANSIBLE_TAGS'] || 'fzf'
-      ansible.verbose = ENV['ANSIBLE_VERBOSE'] || true
+      ansible.verbose = ENV['ANSIBLE_VERBOSE'] || false
       ansible.skip_tags = 'libvirt,containerd'
       ansible.raw_arguments = ['--check'] if ENV['ANSIBLE_CHECK']
     end
   end
 
   # Optional Arch Linux VM for comparison testing
-  config.vm.define 'arch', autostart: false do |arch|
-    arch.vm.box = 'archlinux/archlinux'
-    arch.vm.hostname = ARCH_HOSTNAME
+  # config.vm.define 'arch', autostart: false do |arch|
+  #   arch.vm.box = 'archlinux/archlinux'
+  #   arch.vm.hostname = ARCH_HOSTNAME
 
-    arch.vm.network :private_network,
-                    ip: '192.168.122.11',
-                    libvirt__network_name: 'default'
+  #   arch.vm.network :private_network,
+  #                   ip: '192.168.122.11',
+  #                   libvirt__network_name: 'default'
 
-    arch.vm.provider :libvirt do |libvirt|
-      libvirt.uri = 'qemu:///system'
-      libvirt.memory = 2048
-      libvirt.cpus = 2
-      libvirt.nested = true
-      libvirt.disk_bus = 'virtio'
-      libvirt.cpu_mode = 'host-passthrough'
-      libvirt.nic_model_type = 'virtio'
-      libvirt.disk_driver cache: 'writeback'
-      libvirt.machine_virtual_size = 50
-    end
+  #   arch.vm.provider :libvirt do |libvirt|
+  #     libvirt.uri = 'qemu:///system'
+  #     libvirt.memory = 2048
+  #     libvirt.cpus = 2
+  #     libvirt.nested = true
+  #     libvirt.disk_bus = 'virtio'
+  #     libvirt.cpu_mode = 'host-passthrough'
+  #     libvirt.nic_model_type = 'virtio'
+  #     libvirt.disk_driver cache: 'writeback'
+  #     libvirt.machine_virtual_size = 50
+  #   end
 
-    arch.vm.synced_folder '.', '/vagrant',
-                          type: 'rsync',
-                          rsync__exclude: ['.git/', '*.swp', '.venv/', '.vagrant/']
+  #   arch.vm.synced_folder '.', '/vagrant',
+  #                         type: 'rsync',
+  #                         rsync__exclude: ['.git/', '*.swp', '.venv/', '.vagrant/']
 
-    arch.vm.provision 'file',
-                      source: '~/.ssh/id_ed25519.pub',
-                      destination: '/tmp/id_ed25519.pub'
+  #   arch.vm.provision 'file',
+  #                     source: '~/.ssh/id_ed25519.pub',
+  #                     destination: '/tmp/id_ed25519.pub'
 
-    arch.vm.provision 'shell', inline: <<-SHELL
-      # Update system
-      pacman -Syu --noconfirm
+  #   arch.vm.provision 'shell', inline: <<-SHELL
+  #     # Update system
+  #     pacman -Syu --noconfirm
 
-      # Install required packages
-      pacman -Sy --noconfirm python python-pip ansible git
+  #     # Install required packages
+  #     pacman -Sy --noconfirm python python-pip ansible git
 
-      # Setup SSH key
-      mkdir -p /home/vagrant/.ssh
-      cat /tmp/id_ed25519.pub >> /home/vagrant/.ssh/authorized_keys
-      chmod 600 /home/vagrant/.ssh/authorized_keys
-      chown vagrant:vagrant /home/vagrant/.ssh/authorized_keys
-    SHELL
+  #     # Setup SSH key
+  #     mkdir -p /home/vagrant/.ssh
+  #     cat /tmp/id_ed25519.pub >> /home/vagrant/.ssh/authorized_keys
+  #     chmod 600 /home/vagrant/.ssh/authorized_keys
+  #     chown vagrant:vagrant /home/vagrant/.ssh/authorized_keys
+  #   SHELL
 
-    # Run Ansible playbook
-    arch.vm.provision 'ansible' do |ansible|
-      ansible.playbook = 'site.yml'
-      ansible.groups = {
-        'workstations' => ['arch']
-      }
-      ansible.extra_vars = {
-        ansible_python_interpreter: '/usr/bin/python3',
-        ansible_user: 'vagrant',
-        user: { name: 'vagrant', group: 'vagrant', home: '/home/vagrant', shell: '/bin/bash' },
-        use_docker: 'false',
-        use_libvirt: 'false',
-        window_manager: 'i3',
-        rvm_install: false
-      }
-      ansible.tags = ENV['ANSIBLE_TAGS'] || 'base,ssh,shell'
-      ansible.verbose = ENV['ANSIBLE_VERBOSE'] || false
-      ansible.raw_arguments = ['--check'] if ENV['ANSIBLE_CHECK']
-    end
-  end
+  #   # Run Ansible playbook
+  #   arch.vm.provision 'ansible' do |ansible|
+  #     ansible.playbook = 'site.yml'
+  #     ansible.groups = {
+  #       'workstations' => ['arch']
+  #     }
+  #     ansible.extra_vars = {
+  #       ansible_python_interpreter: '/usr/bin/python3',
+  #       ansible_user: 'vagrant',
+  #       user: { name: 'vagrant', group: 'vagrant', home: '/home/vagrant', shell: '/bin/bash' },
+  #       use_docker: 'false',
+  #       use_libvirt: 'false',
+  #       window_manager: 'i3',
+  #       rvm_install: false
+  #     }
+  #     ansible.tags = ENV['ANSIBLE_TAGS'] || 'base,ssh,shell'
+  #     ansible.verbose = ENV['ANSIBLE_VERBOSE'] || false
+  #     ansible.raw_arguments = ['--check'] if ENV['ANSIBLE_CHECK']
+  #   end
+  # end
 end
 
 # rubocop:enable Metrics/BlockLength
