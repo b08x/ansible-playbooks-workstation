@@ -1,5 +1,5 @@
 ---
-system_tuning_cpupower_governor: powersave
-system_tuning_cpupower_min_freq: null # or "600MHz"
-system_tuning_cpupower_max_freq: null # or "3800MHz"
-system_tuning_irqbalance_enabled: false
+tuning_cpupower_governor: powersave
+tuning_cpupower_min_freq: null # or "600MHz"
+tuning_cpupower_max_freq: null # or "3800MHz"
+tuning_irqbalance_enabled: false
