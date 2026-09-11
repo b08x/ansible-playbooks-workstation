@@ -31,10 +31,11 @@ All playbooks live in `playbooks/`, not at the repo root:
   coding_agents).
 - `base.yml` — the system play of `site.yml` on its own, for base-only runs.
 - `osbuild.yml` — custom image builds via `b08x.rhel_builder.osbuild`. Asserts
-  Fedora or AlmaLinux. Targets `osbuild_targets`, **which no inventory defines
-  yet** — as written the play matches zero hosts and exits 0 with "skipping: no
-  hosts matched". Add the group to `inventory/hosts.ini` (likely as a child of,
-  or alias for, `builder`) before expecting it to do anything.
+  Fedora or AlmaLinux. Targets `osbuild_targets`, defined in
+  `inventory/hosts.ini` as a children-group of `builder` (tinybot, gir). The
+  group name matches the collection's own `playbooks/osbuild.yml`; its sibling
+  `composer_cli.yml` expects `composer_cli_builders`, which this repo does not
+  define.
 - `dify-docker-ninjabot.yml`, `langfuse-podman-tinybot.yml` — standalone
   single-host deployments.
 
