@@ -34,8 +34,6 @@
 **/.eggs/
 **/wheels/
 **/*.zip
-**/*.yml
-**/*.yaml
 **/*.wmv
 **/*.webp
 **/*.webm

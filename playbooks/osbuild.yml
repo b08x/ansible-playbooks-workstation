@@ -1,0 +1,30 @@
+---
+# Build a custom image using image-builder CLI
+# Targets: Fedora, AlmaLinux
+# Tooling: image-builder (unified CLI), osbuild
+
+- name: Build custom workstation image
+  hosts: osbuild_targets
+  become: true
+  gather_facts: true
+
+  vars:
+    osbuild_distro: >-
+      {{ 'fedora-' + ansible_distribution_major_version if ansible_distribution == 'Fedora'
+         else 'almalinux-' + ansible_distribution_major_version }}
+    osbuild_build_bootc: false
+    osbuild_only_generate: false
+
+  pre_tasks:
+    - name: Verify supported distribution
+      ansible.builtin.assert:
+        that:
+          - ansible_distribution in ["Fedora", "AlmaLinux"]
+        fail_msg: >-
+          Unsupported distribution '{{ ansible_distribution }}.
+          This playbook targets Fedora and AlmaLinux only.
+        success_msg: >-
+          Target distribution '{{ ansible_distribution }}' is supported.
+
+  roles:
+    - role: b08x.rhel_builder.osbuild

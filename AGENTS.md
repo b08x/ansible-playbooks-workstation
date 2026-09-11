@@ -8,9 +8,9 @@ are followed.
 ## Project Structure
 
 Four Ansible Collections under `collections/ansible_collections/b08x/`, each a git submodule:
-- **devworkstation** — base, desktop, libvirt, networking, containerd, tuning, selinux, run, coding_agents (antigravity, claude, crush, opencode, vibe, skills)
+- **devworkstation** — base, user, desktop, libvirt, networking, containerd, tuning, run, coding_agents (antigravity, claude, crush, opencode, vibe, skills)
 - **llmops** — run, ollama, hermes, dify, langfuse, tts
-- **rhel_builder** — image_builder, run
+- **rhel_builder** — composer_cli, osbuild, rpm_dev, run
 - **context** — run, plus plugins (action, cache, filter, inventory, lookup, modules, test)
 
 Submodules must be initialized before a first run:
@@ -23,17 +23,35 @@ git submodule update --init --recursive
 collection explicitly. Adding a fifth collection requires a matching `!` negation
 line there as well as a `.gitmodules` entry — otherwise it is silently untracked.
 
-Main playbook: `site.yml` targets `workstations` group (tinybot, gir, soundbot).
-Standalone deployment playbooks live at the repo root (e.g. `langfuse-podman-tinybot.yml`).
+All playbooks live in `playbooks/`, not at the repo root:
+
+- `site.yml` — full workstation provisioning. Targets the `workstations` group
+  (tinybot, gir, soundbot) in two plays: a privileged system play (base, tuning,
+  desktop, libvirt, containerd) and an unprivileged user play (user,
+  coding_agents).
+- `base.yml` — the system play of `site.yml` on its own, for base-only runs.
+- `osbuild.yml` — custom image builds via `b08x.rhel_builder.osbuild`. Asserts
+  Fedora or AlmaLinux. Targets `osbuild_targets`, **which no inventory defines
+  yet** — as written the play matches zero hosts and exits 0 with "skipping: no
+  hosts matched". Add the group to `inventory/hosts.ini` (likely as a child of,
+  or alias for, `builder`) before expecting it to do anything.
+- `dify-docker-ninjabot.yml`, `langfuse-podman-tinybot.yml` — standalone
+  single-host deployments.
+
+Repo-root YAML is configuration, not plays: `ansible-navigator.yml` and the
+`argspec_validation_plays*.yml` pair.
 
 ## Commands
 
 ```bash
 # Run main playbook
-ansible-playbook site.yml
+ansible-playbook playbooks/site.yml
 
 # Run specific role only
-ansible-playbook site.yml --tags "base"
+ansible-playbook playbooks/site.yml --tags "base"
+
+# Build a custom image
+ansible-playbook playbooks/osbuild.yml
 
 # Lint (from collection dir)
 ansible-lint
@@ -51,7 +69,9 @@ pre-commit run --all-files
 - Group vars: `group_vars/dev.yml` (and `group_vars/all.yml`)
 - Host vars: `host_vars/{{ inventory_hostname }}.yml` (e.g. `host_vars/tinybot.yml`)
 - User vars define: `user.name`, `user.home`, `user.shell`
-- ansible.cfg enables: fact caching (jsonfile), profile_tasks callback, pipelining
+- ansible.cfg enables: fact caching (jsonfile, `/tmp/ansible_cache`), pipelining,
+  and the repo-local `llm_analyzer` callback (`profile_tasks` is commented out —
+  enabling both means editing the single `callbacks_enabled` line)
 - Logs go to `.logs/` and `/tmp/ansible.log`
 
 ## Testing
@@ -63,12 +83,21 @@ pre-commit run --all-files
 
 ## Linting
 
-Pre-commit hooks (both collections):
+Two distinct pre-commit configs — running `pre-commit run --all-files` from the
+repo root does **not** apply the collection hooks.
+
+Repo root (`.pre-commit-config.yaml`):
 - **black** (line-length=100)
 - **isort** (import sorting)
 - **flake8** (Python linting)
 - **prettier** (YAML/TOML formatting)
 - **ansible-lint** (Ansible best practices)
+
+Each of the four collections carries its own config with a larger shared set:
+`update-docs`, `check-merge-conflict`, `check-symlinks`, `debug-statements`,
+`end-of-file-fixer`, `no-commit-to-branch`, `trailing-whitespace`,
+`add-trailing-comma`, `prettier`, `isort`, `black`, `flake`. Note these do
+*not* include `ansible-lint` — run it separately from the collection dir.
 
 ## Conventions
 
@@ -84,6 +113,21 @@ Pre-commit hooks (both collections):
 
 ### Firewall & Port Management
 - Port and firewall rules are **co-located** within the specific role or application task that requires them (e.g. using `ansible.posix.firewalld`), rather than centralized into a standalone firewall role. This ensures services remain self-contained, modular, and manage their own ingress needs directly.
+
+## Repo-local Plugins
+
+Plugin paths are wired in `ansible.cfg` (`library`, `module_utils`,
+`callback_plugins`, `filter_plugins`).
+
+- `plugins/callback/` — callback plugins. `llm_analyzer` explains every play and
+  task with an LLM on a background worker pool and records each prediction to an
+  append-only trace store. See [`plugins/callback/README.md`](plugins/callback/README.md).
+- `plugins/callback_utils/` — support modules for `llm_analyzer`. They live
+  outside `plugins/callback/` on purpose; see
+  [`plugins/callback_utils/README.md`](plugins/callback_utils/README.md) before
+  adding a file to either directory.
+- `scripts/llm_trainset.py` — builds a DSPy trainset from captured traces and
+  scores it (`stats`, `evaluate`, `backfill`, `examples`, `sql`).
 
 ## Agent Skills
 

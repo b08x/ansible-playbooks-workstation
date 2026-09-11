@@ -134,6 +134,8 @@ collection/rulebook schemas — Ansible's module surface changes across releases
 - `/ansible/ansible` - The ansible-core source repository. Use for module/plugin implementation detail and changelog behavior not covered by the prose docs.
 - `/ansible/ansible-rulebook` - Event-Driven Ansible: rulebook syntax, event sources, conditions, throttling, and actions.
 - `/ansible/molecule` - Molecule testing framework: scenario layout, drivers, verifiers, and converge/idempotence gates. Relevant to `collections/ansible_collections/b08x/*/extensions/molecule/`.
+- `/websites/dspy_ai` - DSPy: signatures, modules/predictors, optimizers (MIPROv2, GEPA), evaluation. Relevant to the `llm_analyzer` callback and `scripts/llm_trainset.py` — see `plugins/callback/README.md`.
+- `/stanfordnlp/dspy` - DSPy source repository. Use for implementation detail and version-specific behavior the docs site omits.
 
 **Usage**: pass the ID directly to `query-docs` — no `resolve-library-id` call needed
 when the ID is already in `/org/project` form.
