@@ -185,6 +185,7 @@ def cmd_backfill(root, kind, limit):
             source="heuristic",
             score=result["score"],
             feedback="misses: " + (", ".join(result["misses"]) or "none"),
+            metric_version=METRIC_VERSION,
         )
         written += 1
     print(
@@ -207,6 +208,11 @@ def cmd_stats(root):
             (
                 "judgments",
                 "SELECT source, count(*), round(avg(score),3) FROM judgments GROUP BY 1",
+            ),
+            (
+                "  by metric",
+                "SELECT metric_version, count(*), round(avg(score),3) "
+                "FROM judgments GROUP BY 1",
             ),
         ):
             try:

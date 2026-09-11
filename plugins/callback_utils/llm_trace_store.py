@@ -161,6 +161,7 @@ class TraceStore:
         source: str,
         score: float,
         feedback: Optional[str] = None,
+        metric_version: Optional[str] = None,
     ) -> None:
         """Attach a quality label to an analysis.
 
@@ -168,12 +169,20 @@ class TraceStore:
         the prediction, may arrive more than once, and may come from a human, an
         LLM judge, or a heuristic. A column on ``analyses`` could express none of
         that without a rewrite.
+
+        ``metric_version`` records which revision of the scoring metric produced
+        the score, the way ``signature_version`` does for an analysis. Without it
+        a store accumulating judgments across two metric revisions has nothing on
+        disk distinguishing them. Left ``None`` for labels that no versioned
+        metric produced (a human, say); rows predating the field read back as
+        NULL because the views use ``union_by_name=true``.
         """
         record = {
             "analysis_id": analysis_id,
             "source": source,
             "score": score,
             "feedback": feedback,
+            "metric_version": metric_version,
             "created_at": _utcnow(),
         }
         path = self.judgments_dir / f"{source}.jsonl"
