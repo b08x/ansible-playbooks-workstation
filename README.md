@@ -17,8 +17,9 @@ stack — from a single inventory.
 - **Four purpose-built collections** — `devworkstation`, `llmops`, `rhel_builder`
   and `context`, each vendored as a git submodule so collection work and control
   work stay in separate histories.
-- **Two-phase provisioning** — a privileged system play and an unprivileged user
-  play, so dotfiles and per-user tooling never land root-owned in `$HOME`.
+- **Two-phase provisioning** — a privileged system play (`base.yml`) and an
+  unprivileged user play (`user.yml`), so dotfiles and per-user tooling never
+  land root-owned in `$HOME`.
 - **LLM-annotated playbook runs** — the `llm_analyzer` callback explains every
   play and task against a model of choice, off Ansible's main thread, and keeps
   an append-only trace of every prediction.
@@ -26,6 +27,9 @@ stack — from a single inventory.
   and AlmaLinux images, including bootc targets.
 - **Local LLM ops stack** — Ollama, Dify, Langfuse and TTS services deployable
   against Docker or Podman hosts.
+- **Per-role playbooks** — each role has its own playbook under
+  `playbooks/`, so any subsystem can be provisioned independently without
+  composing the full stack.
 - **Tag-scoped execution** — every role carries domain tags, so a full run and a
   single-subsystem run are the same playbook with different flags.
 - **Committed playbook graphs** — rendered structure for each playbook under
@@ -115,28 +119,77 @@ vagrant up
 ## Usage
 
 ```bash
-# Full workstation provisioning
-ansible-playbook playbooks/site.yml
+# System provisioning
+ansible-playbook playbooks/base.yml
 
 # One subsystem
-ansible-playbook playbooks/site.yml --tags "desktop"
-
-# Base system only
-ansible-playbook playbooks/base.yml
+ansible-playbook playbooks/desktop.yml
 
 # Build a custom image
 ansible-playbook playbooks/osbuild.yml
+
+# Standalone service deployments
+ansible-playbook playbooks/dify-docker.yml
+ansible-playbook playbooks/langfuse-podman.yml
+
+# Single role against any host in the group
+ansible-playbook playbooks/tuning.yml --limit builder
 ```
 
 ### Playbooks
 
-- `playbooks/site.yml`: Full provisioning against the `workstations` group, in a
-  privileged system play followed by an unprivileged user play.
-- `playbooks/base.yml`: The system play of `site.yml` alone, for base-only runs.
-- `playbooks/osbuild.yml`: Image builds against `osbuild_targets`; asserts Fedora
-  or AlmaLinux before proceeding.
-- `playbooks/dify-docker-ninjabot.yml`: Dify deployment against a Docker host.
-- `playbooks/langfuse-podman-tinybot.yml`: Langfuse deployment against a Podman host.
+Playbooks that target the `workstations` group can run any single role
+independently — each carries the full variable surface from `group_vars` and
+role defaults, so overrides are always explicit.
+
+**devworkstation collection**
+
+Privileged playbooks (run with `become: true`):
+
+| Playbook | Role | Tags |
+|----------|------|------|
+| `playbooks/base.yml` | base | base, system |
+| `playbooks/tuning.yml` | tuning | tuning, system |
+| `playbooks/desktop.yml` | desktop | desktop, system |
+| `playbooks/libvirt.yml` | libvirt | libvirt, virt |
+| `playbooks/containerd.yml` | containerd | containerd, virt |
+| `playbooks/networking.yml` | networking | networking, system |
+
+Unprivileged playbooks (run without `become`):
+
+| Playbook | Role | Tags |
+|----------|------|------|
+| `playbooks/user.yml` | user | user, system |
+| `playbooks/coding_agents.yml` | coding_agents | coding_agents, system |
+
+**llmops collection**
+
+| Playbook | Role | Host | Runtime |
+|----------|------|------|---------|
+| `playbooks/dify-docker.yml` | dify | ninjabot | Docker |
+| `playbooks/langfuse-podman.yml` | langfuse | tinybot | Podman |
+| `playbooks/ollama.yml` | ollama | workstations | — |
+| `playbooks/hermes.yml` | hermes | workstations | — |
+| `playbooks/tts.yml` | tts | workstations | — |
+
+**rhel_builder collection**
+
+| Playbook | Role | Host |
+|----------|------|------|
+| `playbooks/osbuild.yml` | osbuild | osbuild_targets |
+| `playbooks/composer_cli.yml` | composer_cli | builder |
+| `playbooks/rpm_dev.yml` | rpm_dev | builder |
+
+**Standalone deployments** (role defaults, can be overridden with `-e`)
+
+| Playbook | Role | Host | Runtime |
+|----------|------|------|---------|
+| `playbooks/dify-docker.yml` | dify | ninjabot | Docker |
+| `playbooks/langfuse-podman.yml` | langfuse | tinybot | Podman |
+
+`dify.yml` and `langfuse.yml` (without `-docker`/`-podman` suffix) are the plain
+role playbooks targeting the `workstations` group; the suffixed variants target
+the dedicated `dify` and `langfuse` inventory groups with service-specific defaults.
 
 ### Tags
 
@@ -163,16 +216,20 @@ desktop, user and coding_agents — and `virt`.
 
 ```bash
 # Target one host
-ansible-playbook playbooks/site.yml --limit tinybot
+ansible-playbook playbooks/base.yml --limit tinybot
 
-# Everything except the desktop
-ansible-playbook playbooks/site.yml --skip-tags "desktop"
+# One subsystem
+ansible-playbook playbooks/desktop.yml
+
+# Standalone service deployments
+ansible-playbook playbooks/dify-docker.yml
+ansible-playbook playbooks/langfuse-podman.yml
 
 # Dry run with diffs
-ansible-playbook playbooks/site.yml --check --diff
+ansible-playbook playbooks/base.yml --check --diff
 
 # Virtualisation stack on the builder hosts
-ansible-playbook playbooks/site.yml --tags "virt" --limit builder
+ansible-playbook playbooks/containerd.yml --limit builder
 
 # Lint a collection
 cd collections/ansible_collections/b08x/devworkstation && ansible-lint
@@ -181,15 +238,17 @@ cd collections/ansible_collections/b08x/devworkstation && ansible-lint
 ## Configuration
 
 Inventory lives in `inventory/hosts.ini`. Groups are arranged so membership is
-declared once and reused: `workstations` collects `dev`, `builder` and `virt`,
-and `osbuild_targets` is a children-group of `builder` rather than a second copy
-of the same host list.
+declared once and reused: `workstations` collects `dev`, `builder`, `virt`,
+`langfuse`, and `dify`; `osbuild_targets` is a children-group of `builder` rather
+than a second copy of the same host list.
 
 ```ini
 [workstations:children]
 dev
 builder
 virt
+langfuse
+dify
 
 [osbuild_targets:children]
 builder
