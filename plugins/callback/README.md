@@ -83,14 +83,14 @@ Written under `llm_analysis/` in the directory the playbook ran from:
 llm_analysis/
 ├── <kind>_<count>_<name>.md     rendered analysis + style-violation section
 └── traces/
-    ├── runs.jsonl               one record per playbook run, written at drain
+    ├── runs/<run_id>.json       one file per playbook run
     ├── analyses/<run_id>.jsonl  one record per analysed play or task
     └── judgments/<source>.jsonl quality labels, written out of band
 ```
 
-The run record is written only after the pool has drained, so the counts it
-reports (including `dropped` and `abandoned`) describe analyses that actually
-landed.
+The run file is created at the start of the run and rewritten once the pool has
+drained, so the counts it ends up carrying (including `dropped` and
+`abandoned`) describe analyses that actually landed.
 
 ### Scoring and optimisation
 

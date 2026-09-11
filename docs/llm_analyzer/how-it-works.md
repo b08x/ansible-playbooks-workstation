@@ -151,12 +151,6 @@ llm_analysis/                          (gitignored — .gitignore:212)
     └── judgments/<source>.jsonl       quality labels, written out of band
 ```
 
-> **Note:** `plugins/callback/README.md` describes this as `runs.jsonl`, a single
-> append-only file. The code writes `runs/<run_id>.json`, one file per run,
-> created at `start_run` and rewritten at `end_run`
-> (`llm_trace_store.py:55`, `67-79`, `81-91`). The on-disk layout confirms the
-> code. That README is inaccurate on this point.
-
 The write path holds no database handle (`llm_trace_store.py:5-13`), so two
 concurrent `ansible-playbook` runs cannot contend for a lock. DuckDB reads the
 JSONL directly through `read_json_auto` globs (`llm_trace_store.py:195-231`);
