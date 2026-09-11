@@ -2,6 +2,7 @@
 *.code-workspace
 .vagrant/machines/
 .logs/*
+logs/*
 *.retry
 *.vault
 collections/*
@@ -204,3 +205,8 @@ devfile.yaml
 .graphifyignore
 .gitmodules
 .env
+
+.ruff_cache/
+
+docs/pdca
+llm_analysis/
