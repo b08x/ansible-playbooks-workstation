@@ -1,0 +1,10 @@
+---
+- name: Text-to-Speech (Whisper) Setup
+  hosts: workstations
+  become: false
+  gather_facts: true
+  vars:
+    whisper_my_variable: "default_value"
+  roles:
+    - role: b08x.llmops.tts
+      tags: ["tts", "llmops"]
